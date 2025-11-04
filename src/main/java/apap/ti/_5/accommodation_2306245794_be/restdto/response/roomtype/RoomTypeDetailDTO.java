@@ -15,5 +15,7 @@ public class RoomTypeDetailDTO {
     private String name;
     private String description;
     private int price;
+    private int capacity;
+    private String facility;
     private List<RoomDetailDTO> listRoom;
 }

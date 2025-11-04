@@ -15,6 +15,8 @@ import apap.ti._5.accommodation_2306245794_be.repository.RoomRepository;
 import apap.ti._5.accommodation_2306245794_be.repository.RoomTypeRepository;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.CreatePropertyRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.CreateRoomTypeRequestDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdatePropertyRequestDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdateRoomTypeRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyDetailDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyResponseDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.room.RoomDetailDTO;
@@ -95,15 +97,17 @@ public class PropertyRestServiceImpl implements PropertyRestService {
     }
 
     private RoomTypeDetailDTO mapRoomTypeToDetailDTO(RoomType roomType) {
-        return new RoomTypeDetailDTO(
-                roomType.getRoomTypeId(),
-                roomType.getName(),
-                roomType.getDescription(),
-                roomType.getPrice(),
-                roomType.getListRoom().stream()
-                        .map(this::mapRoomToDetailDTO)
-                        .collect(Collectors.toList())
-        );
+        var roomTypeDetailDTO = new RoomTypeDetailDTO();
+        roomTypeDetailDTO.setRoomTypeId(roomType.getRoomTypeId());
+        roomTypeDetailDTO.setName(roomType.getName());
+        roomTypeDetailDTO.setDescription(roomType.getDescription());
+        roomTypeDetailDTO.setPrice(roomType.getPrice());
+        roomTypeDetailDTO.setCapacity(roomType.getCapacity()); 
+        roomTypeDetailDTO.setFacility(roomType.getFacility()); 
+        roomTypeDetailDTO.setListRoom(roomType.getListRoom().stream()
+                .map(this::mapRoomToDetailDTO)
+                .collect(Collectors.toList()));
+        return roomTypeDetailDTO;
     }
 
     private RoomDetailDTO mapRoomToDetailDTO(Room room) {
@@ -117,7 +121,6 @@ public class PropertyRestServiceImpl implements PropertyRestService {
     @Override
     @Transactional
     public Property createProperty(CreatePropertyRequestDTO dto) {
-        // 1. Validasi duplikasi internal di dalam request
         Set<String> uniqueRoomTypeKeys = new HashSet<>();
         for (CreateRoomTypeRequestDTO rtDto : dto.getListRoomType()) {
             String key = rtDto.getName() + "-" + rtDto.getFloor();
@@ -126,7 +129,6 @@ public class PropertyRestServiceImpl implements PropertyRestService {
             }
         }
 
-        // 2. Buat dan simpan entitas Property
         Property property = new Property();
         property.setPropertyName(dto.getPropertyName());
         property.setType(dto.getType());
@@ -135,10 +137,9 @@ public class PropertyRestServiceImpl implements PropertyRestService {
         property.setDescription(dto.getDescription());
         property.setOwnerName(dto.getOwnerName());
         property.setOwnerId(dto.getOwnerId());
-        property.setActiveStatus(1); // Default active
+        property.setActiveStatus(1); 
         property.setIncome(0);
 
-        // Generate Property ID
         long counter = propertyRepository.count() + 1;
         String uuidSuffix = dto.getOwnerId().toString().substring(dto.getOwnerId().toString().length() - 4);
         String prefix = getPropertyPrefix(dto.getType());
@@ -148,7 +149,6 @@ public class PropertyRestServiceImpl implements PropertyRestService {
         
         int totalRooms = 0;
 
-        // 3. Loop untuk membuat RoomType dan Room
         for (CreateRoomTypeRequestDTO rtDto : dto.getListRoomType()) {
             RoomType roomType = new RoomType();
             roomType.setProperty(savedProperty);
@@ -158,8 +158,7 @@ public class PropertyRestServiceImpl implements PropertyRestService {
             roomType.setCapacity(rtDto.getCapacity());
             roomType.setFacility(rtDto.getFacility());
             roomType.setFloor(rtDto.getFloor());
-            
-            // Generate RoomType ID
+          
             roomType.setRoomTypeId(String.format("%03d-%s-%d", counter, rtDto.getName().replace(" ", ""), rtDto.getFloor()));
             
             RoomType savedRoomType = roomTypeRepository.save(roomType);
@@ -167,11 +166,10 @@ public class PropertyRestServiceImpl implements PropertyRestService {
             for (int i = 1; i <= rtDto.getNumberOfUnits(); i++) {
                 Room room = new Room();
                 room.setRoomType(savedRoomType);
-                room.setName(String.valueOf(rtDto.getFloor() * 100 + i)); // Contoh: 201, 202
-                room.setAvailabilityStatus(1); // Default available
-                room.setActiveRoom(1); // Default active
-                
-                // Generate Room ID
+                room.setName(String.valueOf(rtDto.getFloor() * 100 + i)); 
+                room.setAvailabilityStatus(1); 
+                room.setActiveRoom(1); 
+   
                 room.setRoomId(String.format("%s-%d%02d", savedProperty.getPropertyId(), rtDto.getFloor(), i));
                 
                 roomRepository.save(room);
@@ -190,5 +188,40 @@ public class PropertyRestServiceImpl implements PropertyRestService {
             case 3: return "APT";
             default: throw new IllegalArgumentException("Invalid property type");
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PropertyDetailDTO getPropertyByIdForUpdate(String id) {
+        return getPropertyDetailById(id);
+    }
+
+    @Override
+    @Transactional
+    public Property updateProperty(UpdatePropertyRequestDTO dto) {
+        Property property = propertyRepository.findById(dto.getPropertyId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Property not found"));
+
+        property.setPropertyName(dto.getPropertyName());
+        property.setAddress(dto.getAddress());
+        property.setDescription(dto.getDescription());
+
+        for (UpdateRoomTypeRequestDTO rtDto : dto.getListRoomType()) {
+            RoomType roomTypeToUpdate = roomTypeRepository.findById(rtDto.getRoomTypeId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "RoomType with ID " + rtDto.getRoomTypeId() + " not found"));
+
+            if (!roomTypeToUpdate.getProperty().getPropertyId().equals(property.getPropertyId())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "RoomType does not belong to this property");
+            }
+
+            roomTypeToUpdate.setCapacity(rtDto.getCapacity());
+            roomTypeToUpdate.setPrice(rtDto.getPrice());
+            roomTypeToUpdate.setDescription(rtDto.getDescription());
+            roomTypeToUpdate.setFacility(rtDto.getFacility());
+            
+            roomTypeRepository.save(roomTypeToUpdate);
+        }
+
+        return propertyRepository.save(property);
     }
 }

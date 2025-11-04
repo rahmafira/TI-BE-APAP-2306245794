@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -19,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import apap.ti._5.accommodation_2306245794_be.model.Property;
 import apap.ti._5.accommodation_2306245794_be.restdto.BaseResponseDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.CreatePropertyRequestDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdatePropertyRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyDetailDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyResponseDTO;
 import apap.ti._5.accommodation_2306245794_be.restservice.PropertyRestService;
@@ -95,6 +97,28 @@ public class PropertyRestController {
             response.setMessage(e.getReason());
             response.setData(null);
             response.setTimestamp(new Date());
+            return ResponseEntity.status(e.getStatusCode()).body(response);
+        }
+    }
+
+    @GetMapping("/update/{id}")
+    public ResponseEntity<BaseResponseDTO<PropertyDetailDTO>> getPropertyForUpdate(@PathVariable("id") String id) {
+        return getPropertyDetailById(id);
+    }
+    
+    @PutMapping("/update")
+    public ResponseEntity<BaseResponseDTO<Property>> updateProperty(@Valid @RequestBody UpdatePropertyRequestDTO updatePropertyRequestDTO) {
+        var response = new BaseResponseDTO<Property>();
+        try {
+            Property updatedProperty = propertyRestService.updateProperty(updatePropertyRequestDTO);
+            response.setStatus(HttpStatus.OK.value());
+            response.setMessage("Property updated successfully");
+            response.setData(updatedProperty);
+            response.setTimestamp(new Date());
+            return ResponseEntity.ok(response);
+        } catch (ResponseStatusException e) {
+            response.setStatus(e.getStatusCode().value());
+            response.setMessage(e.getReason());
             return ResponseEntity.status(e.getStatusCode()).body(response);
         }
     }
