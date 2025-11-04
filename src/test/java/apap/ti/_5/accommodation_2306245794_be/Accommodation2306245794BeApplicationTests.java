@@ -1,4 +1,4 @@
-package asap.ti._5.accommodation_2306245794_be;
+package apap.ti._5.accommodation_2306245794_be;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

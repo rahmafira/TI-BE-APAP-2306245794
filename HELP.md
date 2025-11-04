@@ -1,7 +1,7 @@
 # Read Me First
 The following was discovered as part of building this project:
 
-* The original package name 'asap.ti.2025.accommodation-2306245794-be' is invalid and this project uses 'asap.ti._5.accommodation_2306245794_be' instead.
+* The original package name 'apap.ti.2025.accommodation-2306245794-be' is invalid and this project uses 'apap.ti._5.accommodation_2306245794_be' instead.
 
 # Getting Started
 

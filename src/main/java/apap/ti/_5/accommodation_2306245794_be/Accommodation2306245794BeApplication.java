@@ -1,4 +1,4 @@
-package asap.ti._5.accommodation_2306245794_be;
+package apap.ti._5.accommodation_2306245794_be;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

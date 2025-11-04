@@ -4,9 +4,9 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
-group = 'asap.ti.2025'
+group = 'apap.ti.2025'
 version = '0.0.1-SNAPSHOT'
-description = 'Tugas Individu APAP - Accommodation Back End'
+description = 'Tugas Individu APAP 2306245794 - Accommodation Back End'
 
 java {
 	toolchain {
