@@ -20,9 +20,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import apap.ti._5.accommodation_2306245794_be.model.Property;
 import apap.ti._5.accommodation_2306245794_be.restdto.BaseResponseDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.AddRoomTypesRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.CreatePropertyRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdatePropertyRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyDetailDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyHeaderDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyResponseDTO;
 import apap.ti._5.accommodation_2306245794_be.restservice.PropertyRestService;
 import jakarta.validation.Valid;
@@ -155,6 +157,26 @@ public class PropertyRestController {
             response.setMessage(e.getReason());
             response.setTimestamp(new Date());
             return ResponseEntity.status(e.getStatusCode()).body(response);
+        }
+    }
+
+    @GetMapping("/updateroom/{id}")
+    public ResponseEntity<BaseResponseDTO<PropertyHeaderDTO>> getPropertyHeaderForAddRoom(@PathVariable("id") String id) {
+        try {
+            PropertyHeaderDTO header = propertyRestService.getPropertyHeader(id);
+            return ResponseEntity.ok(new BaseResponseDTO<>(HttpStatus.OK.value(), "Success", new Date(), header));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(new BaseResponseDTO<>(e.getStatusCode().value(), e.getReason(), new Date(), null));
+        }
+    }
+
+    @PostMapping("/updateroom")
+    public ResponseEntity<BaseResponseDTO<Object>> addRoomTypes(@Valid @RequestBody AddRoomTypesRequestDTO requestDTO) {
+        try {
+            propertyRestService.addRoomTypesToProperty(requestDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new BaseResponseDTO<>(HttpStatus.CREATED.value(), "Room types added successfully.", new Date(), null));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(new BaseResponseDTO<>(e.getStatusCode().value(), e.getReason(), new Date(), null));
         }
     }
 }

@@ -1,12 +1,5 @@
 package apap.ti._5.accommodation_2306245794_be.restservice;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-import org.hibernate.Hibernate; 
-
 import apap.ti._5.accommodation_2306245794_be.model.Property;
 import apap.ti._5.accommodation_2306245794_be.model.Room;
 import apap.ti._5.accommodation_2306245794_be.model.RoomType;
@@ -14,19 +7,28 @@ import apap.ti._5.accommodation_2306245794_be.repository.AccommodationBookingRep
 import apap.ti._5.accommodation_2306245794_be.repository.PropertyRepository;
 import apap.ti._5.accommodation_2306245794_be.repository.RoomRepository;
 import apap.ti._5.accommodation_2306245794_be.repository.RoomTypeRepository;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.AddRoomTypesRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.CreatePropertyRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.CreateRoomTypeRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdatePropertyRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdateRoomTypeRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyDetailDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyHeaderDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyResponseDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.room.RoomDetailDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.roomtype.RoomTypeDetailDTO;
+import org.hibernate.Hibernate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -43,8 +45,8 @@ public class PropertyRestServiceImpl implements PropertyRestService {
     private RoomRepository roomRepository;
 
     @Autowired
-    private AccommodationBookingRepository bookingRepository; 
-    
+    private AccommodationBookingRepository bookingRepository;
+
     private final AtomicLong propertyCounter = new AtomicLong(0);
 
     @Override
@@ -77,7 +79,6 @@ public class PropertyRestServiceImpl implements PropertyRestService {
                 Hibernate.initialize(roomType.getListRoom());
             }
         }
-
         return mapPropertyToDetailDTO(property);
     }
 
@@ -108,8 +109,8 @@ public class PropertyRestServiceImpl implements PropertyRestService {
         roomTypeDetailDTO.setName(roomType.getName());
         roomTypeDetailDTO.setDescription(roomType.getDescription());
         roomTypeDetailDTO.setPrice(roomType.getPrice());
-        roomTypeDetailDTO.setCapacity(roomType.getCapacity()); 
-        roomTypeDetailDTO.setFacility(roomType.getFacility()); 
+        roomTypeDetailDTO.setCapacity(roomType.getCapacity());
+        roomTypeDetailDTO.setFacility(roomType.getFacility());
         roomTypeDetailDTO.setListRoom(roomType.getListRoom().stream()
                 .map(this::mapRoomToDetailDTO)
                 .collect(Collectors.toList()));
@@ -143,17 +144,17 @@ public class PropertyRestServiceImpl implements PropertyRestService {
         property.setDescription(dto.getDescription());
         property.setOwnerName(dto.getOwnerName());
         property.setOwnerId(dto.getOwnerId());
-        property.setActiveStatus(1); 
+        property.setActiveStatus(1);
         property.setIncome(0);
 
         long counter = propertyRepository.count() + 1;
         String uuidSuffix = dto.getOwnerId().toString().substring(dto.getOwnerId().toString().length() - 4);
         String prefix = getPropertyPrefix(dto.getType());
-        property.setPropertyId(String.format("%s-%s-%03d", prefix, uuidSuffix, counter));
+        property.setPropertyId(String.format("%s-%s-%03d", prefix, uuidSuffix.toUpperCase(), counter));
 
         Property savedProperty = propertyRepository.save(property);
-        
         int totalRooms = 0;
+        List<RoomType> roomTypeList = new ArrayList<>();
 
         for (CreateRoomTypeRequestDTO rtDto : dto.getListRoomType()) {
             RoomType roomType = new RoomType();
@@ -164,25 +165,24 @@ public class PropertyRestServiceImpl implements PropertyRestService {
             roomType.setCapacity(rtDto.getCapacity());
             roomType.setFacility(rtDto.getFacility());
             roomType.setFloor(rtDto.getFloor());
-          
             roomType.setRoomTypeId(String.format("%03d-%s-%d", counter, rtDto.getName().replace(" ", ""), rtDto.getFloor()));
-            
-            RoomType savedRoomType = roomTypeRepository.save(roomType);
 
+            List<Room> roomList = new ArrayList<>();
             for (int i = 1; i <= rtDto.getNumberOfUnits(); i++) {
                 Room room = new Room();
-                room.setRoomType(savedRoomType);
-                room.setName(String.valueOf(rtDto.getFloor() * 100 + i)); 
-                room.setAvailabilityStatus(1); 
-                room.setActiveRoom(1); 
-   
-                room.setRoomId(String.format("%s-%d%02d", savedProperty.getPropertyId(), rtDto.getFloor(), i));
-                
-                roomRepository.save(room);
+                room.setRoomType(roomType);
+                room.setName(String.valueOf(rtDto.getFloor() * 100 + i));
+                room.setAvailabilityStatus(1);
+                room.setActiveRoom(1);
+                room.setRoomId(String.format("%s-%d", savedProperty.getPropertyId(), (rtDto.getFloor() * 100 + i)));
+                roomList.add(room);
             }
+            roomType.setListRoom(roomList);
+            roomTypeList.add(roomType);
             totalRooms += rtDto.getNumberOfUnits();
         }
 
+        savedProperty.setListRoomType(roomTypeList);
         savedProperty.setTotalRoom(totalRooms);
         return propertyRepository.save(savedProperty);
     }
@@ -224,7 +224,7 @@ public class PropertyRestServiceImpl implements PropertyRestService {
             roomTypeToUpdate.setPrice(rtDto.getPrice());
             roomTypeToUpdate.setDescription(rtDto.getDescription());
             roomTypeToUpdate.setFacility(rtDto.getFacility());
-            
+
             roomTypeRepository.save(roomTypeToUpdate);
         }
 
@@ -249,7 +249,73 @@ public class PropertyRestServiceImpl implements PropertyRestService {
                 room.setActiveRoom(0);
             }
         }
+        propertyRepository.save(property);
+    }
 
+    @Override
+    @Transactional(readOnly = true)
+    public PropertyHeaderDTO getPropertyHeader(String id) {
+        Property property = propertyRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Property not found"));
+        return new PropertyHeaderDTO(property.getPropertyId(), property.getPropertyName(), property.getType());
+    }
+
+    @Override
+    @Transactional
+    public void addRoomTypesToProperty(AddRoomTypesRequestDTO dto) {
+        Property property = propertyRepository.findByIdWithRoomTypes(dto.getPropertyId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Property not found"));
+
+        Set<String> existingKeys = property.getListRoomType().stream()
+                .map(rt -> rt.getName() + "-" + rt.getFloor())
+                .collect(Collectors.toSet());
+
+        for (CreateRoomTypeRequestDTO newRtDto : dto.getNewRoomTypes()) {
+            String newKey = newRtDto.getName() + "-" + newRtDto.getFloor();
+            if (existingKeys.contains(newKey)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Duplicate combination of room type and floor already exists for this property: " + newKey);
+            }
+        }
+
+        Set<String> requestKeys = new HashSet<>();
+        for (CreateRoomTypeRequestDTO newRtDto : dto.getNewRoomTypes()) {
+            String newKey = newRtDto.getName() + "-" + newRtDto.getFloor();
+            if (!requestKeys.add(newKey)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Duplicate combination of room type and floor found in the request: " + newKey);
+            }
+        }
+
+        int totalNewRooms = 0;
+        long propertyCounter = Long.parseLong(property.getPropertyId().split("-")[2]);
+
+        for (CreateRoomTypeRequestDTO rtDto : dto.getNewRoomTypes()) {
+            RoomType roomType = new RoomType();
+            roomType.setProperty(property);
+            roomType.setName(rtDto.getName());
+            roomType.setPrice(rtDto.getPrice());
+            roomType.setDescription(rtDto.getDescription());
+            roomType.setCapacity(rtDto.getCapacity());
+            roomType.setFacility(rtDto.getFacility());
+            roomType.setFloor(rtDto.getFloor());
+            roomType.setRoomTypeId(String.format("%03d-%s-%d", propertyCounter, rtDto.getName().replace(" ", ""), rtDto.getFloor()));
+
+            List<Room> roomList = new ArrayList<>();
+            for (int i = 1; i <= rtDto.getNumberOfUnits(); i++) {
+                Room room = new Room();
+                room.setRoomType(roomType);
+                room.setName(String.valueOf(rtDto.getFloor() * 100 + i));
+                room.setAvailabilityStatus(1);
+                room.setActiveRoom(1);
+                room.setRoomId(String.format("%s-%d", property.getPropertyId(), (rtDto.getFloor() * 100 + i)));
+                roomList.add(room);
+            }
+            roomType.setListRoom(roomList);
+
+            property.getListRoomType().add(roomType);
+            totalNewRooms += rtDto.getNumberOfUnits();
+        }
+
+        property.setTotalRoom(property.getTotalRoom() + totalNewRooms);
         propertyRepository.save(property);
     }
 }
