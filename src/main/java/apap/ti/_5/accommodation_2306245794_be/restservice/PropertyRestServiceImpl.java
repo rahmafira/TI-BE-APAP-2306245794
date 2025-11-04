@@ -10,6 +10,7 @@ import org.hibernate.Hibernate;
 import apap.ti._5.accommodation_2306245794_be.model.Property;
 import apap.ti._5.accommodation_2306245794_be.model.Room;
 import apap.ti._5.accommodation_2306245794_be.model.RoomType;
+import apap.ti._5.accommodation_2306245794_be.repository.AccommodationBookingRepository;
 import apap.ti._5.accommodation_2306245794_be.repository.PropertyRepository;
 import apap.ti._5.accommodation_2306245794_be.repository.RoomRepository;
 import apap.ti._5.accommodation_2306245794_be.repository.RoomTypeRepository;
@@ -22,6 +23,7 @@ import apap.ti._5.accommodation_2306245794_be.restdto.response.property.Property
 import apap.ti._5.accommodation_2306245794_be.restdto.response.room.RoomDetailDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.roomtype.RoomTypeDetailDTO;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
@@ -36,8 +38,12 @@ public class PropertyRestServiceImpl implements PropertyRestService {
 
     @Autowired
     private RoomTypeRepository roomTypeRepository;
+
     @Autowired
     private RoomRepository roomRepository;
+
+    @Autowired
+    private AccommodationBookingRepository bookingRepository; 
     
     private final AtomicLong propertyCounter = new AtomicLong(0);
 
@@ -223,5 +229,27 @@ public class PropertyRestServiceImpl implements PropertyRestService {
         }
 
         return propertyRepository.save(property);
+    }
+
+    @Override
+    @Transactional
+    public void softDeleteProperty(String id) {
+        Property property = propertyRepository.findByIdWithRoomTypes(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Property not found"));
+
+        long futureBookings = bookingRepository.countFutureBookingsByPropertyId(id, LocalDateTime.now());
+        if (futureBookings > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot deactivate property. There are " + futureBookings + " upcoming bookings.");
+        }
+
+        property.setActiveStatus(0);
+
+        for (RoomType roomType : property.getListRoomType()) {
+            for (Room room : roomType.getListRoom()) {
+                room.setActiveRoom(0);
+            }
+        }
+
+        propertyRepository.save(property);
     }
 }

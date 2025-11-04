@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -138,5 +139,22 @@ public class PropertyRestController {
         response.setData(null);
 
         return response;
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<BaseResponseDTO<Object>> softDeleteProperty(@PathVariable("id") String id) {
+        var response = new BaseResponseDTO<>();
+        try {
+            propertyRestService.softDeleteProperty(id);
+            response.setStatus(HttpStatus.OK.value());
+            response.setMessage("Property has been successfully deactivated.");
+            response.setTimestamp(new Date());
+            return ResponseEntity.ok(response);
+        } catch (ResponseStatusException e) {
+            response.setStatus(e.getStatusCode().value());
+            response.setMessage(e.getReason());
+            response.setTimestamp(new Date());
+            return ResponseEntity.status(e.getStatusCode()).body(response);
+        }
     }
 }

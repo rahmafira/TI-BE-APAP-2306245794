@@ -14,4 +14,5 @@ public interface PropertyRestService {
     Property createProperty(CreatePropertyRequestDTO createPropertyRequestDTO);
     PropertyDetailDTO getPropertyByIdForUpdate(String id);
     Property updateProperty(UpdatePropertyRequestDTO updatePropertyRequestDTO);
+    void softDeleteProperty(String id);
 }
