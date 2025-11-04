@@ -1,8 +1,11 @@
 package apap.ti._5.accommodation_2306245794_be.restservice;
 
 import java.util.List;
-import apap.ti._5.accommodation_2306245794_be.restdto.response.PropertyResponseDTO;
+
+import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyDetailDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyResponseDTO;
 
 public interface PropertyRestService {
     List<PropertyResponseDTO> getAllProperties();
+    PropertyDetailDTO getPropertyDetailById(String id);
 }

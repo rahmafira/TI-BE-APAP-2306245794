@@ -1,4 +1,4 @@
-package apap.ti._5.accommodation_2306245794_be.restdto.response;
+package apap.ti._5.accommodation_2306245794_be.restdto.response.property;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
