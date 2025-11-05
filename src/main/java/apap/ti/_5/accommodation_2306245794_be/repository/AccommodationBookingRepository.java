@@ -13,4 +13,10 @@ public interface AccommodationBookingRepository extends JpaRepository<Accommodat
            "WHERE b.room.roomType.property.propertyId = :propertyId " +
            "AND b.checkInDate >= :currentDate")
     long countFutureBookingsByPropertyId(String propertyId, LocalDateTime currentDate);
+
+    @Query("SELECT COUNT(b) FROM AccommodationBooking b " +
+           "WHERE b.room.roomId = :roomId " +
+           "AND b.checkInDate < :maintenanceEnd " +
+           "AND b.checkOutDate > :maintenanceStart")
+    long countOverlappingBookings(String roomId, LocalDateTime maintenanceStart, LocalDateTime maintenanceEnd);
 }
