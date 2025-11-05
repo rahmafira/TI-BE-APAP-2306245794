@@ -7,11 +7,11 @@ import apap.ti._5.accommodation_2306245794_be.repository.AccommodationBookingRep
 import apap.ti._5.accommodation_2306245794_be.repository.PropertyRepository;
 import apap.ti._5.accommodation_2306245794_be.repository.RoomRepository;
 import apap.ti._5.accommodation_2306245794_be.repository.RoomTypeRepository;
-import apap.ti._5.accommodation_2306245794_be.restdto.request.AddRoomTypesRequestDTO;
-import apap.ti._5.accommodation_2306245794_be.restdto.request.CreatePropertyRequestDTO;
-import apap.ti._5.accommodation_2306245794_be.restdto.request.CreateRoomTypeRequestDTO;
-import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdatePropertyRequestDTO;
-import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdateRoomTypeRequestDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.property.CreatePropertyRequestDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.property.UpdatePropertyRequestDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.room.AddRoomTypesRequestDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.room.CreateRoomTypeRequestDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.room.UpdateRoomTypeRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyDetailDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyHeaderDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyResponseDTO;

@@ -1,4 +1,4 @@
-package apap.ti._5.accommodation_2306245794_be.restdto.request;
+package apap.ti._5.accommodation_2306245794_be.restdto.request.room;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

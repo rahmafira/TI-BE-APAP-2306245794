@@ -63,16 +63,16 @@ public class AccommodationBooking {
     private LocalDateTime createdDate;
 
     @Column(name = "updated_date", nullable = false)
-    private LocalDateTime updatedDate;
+    private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
         this.createdDate = LocalDateTime.now();
-        this.updatedDate = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.updatedDate = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }

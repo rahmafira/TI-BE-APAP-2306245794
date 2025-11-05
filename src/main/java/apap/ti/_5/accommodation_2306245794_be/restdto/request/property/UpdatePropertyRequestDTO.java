@@ -1,9 +1,11 @@
-package apap.ti._5.accommodation_2306245794_be.restdto.request;
+package apap.ti._5.accommodation_2306245794_be.restdto.request.property;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.util.List;
+
+import apap.ti._5.accommodation_2306245794_be.restdto.request.room.UpdateRoomTypeRequestDTO;
 
 @Data
 public class UpdatePropertyRequestDTO {

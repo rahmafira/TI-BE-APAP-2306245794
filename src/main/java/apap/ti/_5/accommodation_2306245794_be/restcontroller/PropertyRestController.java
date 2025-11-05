@@ -20,9 +20,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import apap.ti._5.accommodation_2306245794_be.model.Property;
 import apap.ti._5.accommodation_2306245794_be.restdto.BaseResponseDTO;
-import apap.ti._5.accommodation_2306245794_be.restdto.request.AddRoomTypesRequestDTO;
-import apap.ti._5.accommodation_2306245794_be.restdto.request.CreatePropertyRequestDTO;
-import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdatePropertyRequestDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.property.CreatePropertyRequestDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.property.UpdatePropertyRequestDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.room.AddRoomTypesRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyDetailDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyHeaderDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyResponseDTO;
