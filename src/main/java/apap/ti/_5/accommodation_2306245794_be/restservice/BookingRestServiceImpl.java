@@ -5,6 +5,8 @@ import apap.ti._5.accommodation_2306245794_be.repository.*;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.CreateBookingRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdateBookingRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.*;
+import apap.ti._5.accommodation_2306245794_be.restdto.response.chart.ChartDataDTO;
+
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -453,5 +455,11 @@ public class BookingRestServiceImpl implements BookingRestService {
 
         propertyRepository.save(property);
         bookingRepository.save(booking);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChartDataDTO> getChartData(int month, int year) {
+        return bookingRepository.findMonthlyIncomeByProperty(year, month);
     }
 }

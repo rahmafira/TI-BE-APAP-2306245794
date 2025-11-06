@@ -8,6 +8,7 @@ import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.BookingRe
 import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.BookingSelectionDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.PrefilledBookingDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.UpdateBookingFormDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.response.chart.ChartDataDTO;
 
 import java.util.List;
 
@@ -22,4 +23,5 @@ public interface BookingRestService {
     void confirmPayment(String bookingId);
     void cancelBooking(String bookingId);
     void processRefund(String bookingId);
+    List<ChartDataDTO> getChartData(int month, int year);
 }

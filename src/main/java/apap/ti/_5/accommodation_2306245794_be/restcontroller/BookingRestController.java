@@ -10,6 +10,7 @@ import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.BookingRe
 import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.BookingSelectionDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.PrefilledBookingDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.UpdateBookingFormDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.response.chart.ChartDataDTO;
 import apap.ti._5.accommodation_2306245794_be.restservice.BookingRestService;
 import jakarta.validation.Valid;
 
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -379,6 +381,20 @@ public class BookingRestController {
             baseResponseDTO.setData(null);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/chart")
+    public ResponseEntity<BaseResponseDTO<List<ChartDataDTO>>> getChartData(
+        @RequestParam("month") int month,
+        @RequestParam("year") int year
+    ) {
+        try {
+            List<ChartDataDTO> chartData = bookingRestService.getChartData(month, year);
+            return ResponseEntity.ok(new BaseResponseDTO<>(HttpStatus.OK.value(), "Success", new Date(), chartData));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new BaseResponseDTO<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), new Date(), null));
         }
     }
 }
