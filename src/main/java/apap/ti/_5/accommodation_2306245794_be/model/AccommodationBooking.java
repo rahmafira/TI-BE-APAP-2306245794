@@ -14,6 +14,7 @@ import java.util.UUID;
 @Table(name = "accommodation_booking")
 public class AccommodationBooking {
     @Id
+    @Column(name = "booking_id", nullable = false)
     private String bookingID;
 
     @ManyToOne(fetch = FetchType.LAZY)

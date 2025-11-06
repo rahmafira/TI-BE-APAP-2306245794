@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -95,11 +96,17 @@ public class Accommodation2306245794BeApplication {
 
             System.out.println("Generating dummy bookings...");
             List<AccommodationBooking> bookings = new ArrayList<>();
+            DateTimeFormatter timestampFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm:ss");
             for (int i = 0; i < 15; i++) { 
                 AccommodationBooking booking = new AccommodationBooking();
-                booking.setBookingID("BOOK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-                
+                                
                 Room randomRoom = allRooms.get(faker.number().numberBetween(0, allRooms.size()));
+
+                String roomId = randomRoom.getRoomId();
+                String roomIdSuffix = roomId.length() > 7 ? roomId.substring(roomId.length() - 7) : roomId;
+                String timestamp = LocalDateTime.now().minusSeconds(i).format(timestampFormatter); 
+                String bookingId = String.format("BOOK-%s-%s", roomIdSuffix, timestamp);
+                booking.setBookingID(bookingId);
                 booking.setRoom(randomRoom);
 
                 LocalDateTime checkIn = LocalDateTime.now().plusDays(faker.number().numberBetween(1, 30));

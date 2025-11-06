@@ -13,4 +13,6 @@ public interface PropertyRepository extends JpaRepository<Property, String> {
 
     @Query("SELECT p FROM Property p LEFT JOIN FETCH p.listRoomType WHERE p.propertyId = :id")
     Optional<Property> findByIdWithRoomTypes(String id);
+
+    List<Property> findByActiveStatus(int status);
 }
