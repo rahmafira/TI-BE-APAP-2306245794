@@ -68,7 +68,9 @@ public class BookingRestServiceImpl implements BookingRestService {
     @Transactional(readOnly = true)
     public BookingDetailDTO getBookingDetailById(String id) {
         AccommodationBooking booking = bookingRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking with ID " + id + " not found."));
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Booking with ID " + id + " not found."
+            ));
         return mapBookingToDetailDTO(booking);
     }
 
@@ -100,7 +102,9 @@ public class BookingRestServiceImpl implements BookingRestService {
     @Transactional(readOnly = true)
     public PrefilledBookingDTO getPrefilledBookingData(String idRoom) {
         Room room = roomRepository.findById(idRoom)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Room not found"));
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Room not found"
+            ));
         return new PrefilledBookingDTO(room.getRoomId(), room.getName(), room.getRoomType().getCapacity());
     }
     
@@ -139,31 +143,45 @@ public class BookingRestServiceImpl implements BookingRestService {
     }
 
     @Override
-    @Transactional // DIHAPUS: (readOnly = true)
+    @Transactional
     public BookingDetailDTO createBooking(CreateBookingRequestDTO dto) {
         Room room = roomRepository.findById(dto.getRoomId())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Room not found"));
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Room not found"
+            ));
         
         LocalDateTime checkIn = dto.getCheckInDate().atTime(14, 0);
         LocalDateTime checkOut = dto.getCheckOutDate().atTime(12, 0);
 
         if (checkOut.isBefore(checkIn.plusDays(1))) { 
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Minimum booking is for one day."); 
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Minimum booking is for one day."
+            ); 
         }
         if (checkIn.toLocalDate().isBefore(LocalDate.now())) { 
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Minimum check-in date is today."); 
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Minimum check-in date is today."
+            ); 
         }
         if (dto.getCapacity() > room.getRoomType().getCapacity()) { 
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking capacity exceeds room capacity."); 
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Booking capacity exceeds room capacity."
+            ); 
         }
 
-        long overlappingBookings = bookingRepository.countOverlappingBookings(dto.getRoomId(), checkIn, checkOut);
+        long overlappingBookings = bookingRepository.countByRoomRoomIdAndCheckInDateLessThanAndCheckOutDateGreaterThan(
+            dto.getRoomId(), checkOut, checkIn
+        );
         if (overlappingBookings > 0) { 
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected dates are not available for this room."); 
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Selected dates are not available for this room."
+            ); 
         }
         if (room.getMaintenanceStart() != null && room.getMaintenanceEnd() != null) {
             if (checkIn.isBefore(room.getMaintenanceEnd()) && checkOut.isAfter(room.getMaintenanceStart())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Room is scheduled for maintenance during the selected dates.");
+                throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Room is scheduled for maintenance during the selected dates."
+                );
             }
         }
 
@@ -178,7 +196,9 @@ public class BookingRestServiceImpl implements BookingRestService {
         }
 
         String roomIdSuffix = room.getRoomId().substring(room.getRoomId().length() - 7);
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
+        String timestamp = LocalDateTime.now().format(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")
+        );
         String bookingId = String.format("BOOK-%s-%s", roomIdSuffix, timestamp);
 
         AccommodationBooking booking = new AccommodationBooking();
@@ -207,14 +227,17 @@ public class BookingRestServiceImpl implements BookingRestService {
     @Transactional(readOnly = true)
     public UpdateBookingFormDTO getBookingDataForUpdate(String id) {
         AccommodationBooking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Booking not found"
+            ));
         
         if (booking.getExtraPay() > 0 || booking.getRefund() > 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking with pending extra payment or refund cannot be updated.");
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Booking with pending extra payment or refund cannot be updated."
+            );
         }
 
         BookingDetailDTO currentBooking = mapBookingToDetailDTO(booking);
-
         BookingSelectionDTO selectionData = getBookingSelectionData();
 
         String currentPropertyId = booking.getRoom().getRoomType().getProperty().getPropertyId();
@@ -258,27 +281,56 @@ public class BookingRestServiceImpl implements BookingRestService {
     @Transactional 
     public BookingDetailDTO updateBooking(UpdateBookingRequestDTO dto) {
         AccommodationBooking booking = bookingRepository.findById(dto.getBookingId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Booking not found"
+            ));
         
         if (booking.getExtraPay() > 0 || booking.getRefund() > 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking with pending extra payment or refund cannot be updated.");
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Booking with pending extra payment or refund cannot be updated."
+            );
         }
 
         Room newRoom = roomRepository.findById(dto.getRoomId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Selected room not found"));
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Selected room not found"
+            ));
 
         LocalDateTime newCheckIn = dto.getCheckInDate().atTime(14, 0);
         LocalDateTime newCheckOut = dto.getCheckOutDate().atTime(12, 0);
 
-        if (newCheckOut.isBefore(newCheckIn.plusDays(1))) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Minimum booking is for one day."); }
-        if (newCheckIn.toLocalDate().isBefore(LocalDate.now())) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Minimum check-in date is today."); }
-        if (dto.getCapacity() > newRoom.getRoomType().getCapacity()) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking capacity exceeds room capacity."); }
+        if (newCheckOut.isBefore(newCheckIn.plusDays(1))) { 
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Minimum booking is for one day."
+            ); 
+        }
+        if (newCheckIn.toLocalDate().isBefore(LocalDate.now())) { 
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Minimum check-in date is today."
+            ); 
+        }
+        if (dto.getCapacity() > newRoom.getRoomType().getCapacity()) { 
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Booking capacity exceeds room capacity."
+            ); 
+        }
 
-        long overlappingBookings = bookingRepository.countOverlappingBookingsForUpdate(dto.getRoomId(), newCheckIn, newCheckOut, dto.getBookingId());
-        if (overlappingBookings > 0) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected dates are not available for this room."); }
+        long overlappingBookings = bookingRepository.countByRoomRoomIdAndBookingIDNotAndCheckInDateLessThanAndCheckOutDateGreaterThan(
+            dto.getRoomId(),      
+            dto.getBookingId(), 
+            newCheckOut,     
+            newCheckIn   
+        );
+        if (overlappingBookings > 0) { 
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Selected dates are not available for this room."
+            ); 
+        }
         if (newRoom.getMaintenanceStart() != null && newRoom.getMaintenanceEnd() != null) {
             if (newCheckIn.isBefore(newRoom.getMaintenanceEnd()) && newCheckOut.isAfter(newRoom.getMaintenanceStart())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Room is scheduled for maintenance during the selected dates.");
+                throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Room is scheduled for maintenance during the selected dates."
+                );
             }
         }
 
@@ -292,10 +344,10 @@ public class BookingRestServiceImpl implements BookingRestService {
         int oldTotalPrice = booking.getTotalPrice();
         if (newTotalPrice > oldTotalPrice) {
             booking.setExtraPay(newTotalPrice - oldTotalPrice);
-            booking.setStatus(0); // Waiting for Payment
+            booking.setStatus(0); 
         } else if (newTotalPrice < oldTotalPrice) {
             booking.setRefund(oldTotalPrice - newTotalPrice);
-            booking.setStatus(3); // Request Refund
+            booking.setStatus(3); 
         }
         
         booking.setRoom(newRoom);
@@ -312,5 +364,94 @@ public class BookingRestServiceImpl implements BookingRestService {
 
         AccommodationBooking updatedBooking = bookingRepository.save(booking);
         return mapBookingToDetailDTO(updatedBooking);
+    }
+
+    @Override
+    @Transactional
+    public void confirmPayment(String bookingId) {
+        AccommodationBooking booking = bookingRepository.findById(bookingId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Booking not found."
+            ));
+
+        if (booking.getStatus() != 0 && booking.getExtraPay() == 0) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Payment can only be confirmed for bookings with status 'Waiting for Payment'."
+            );
+        }
+
+        Property property = booking.getRoom().getRoomType().getProperty();
+        int paymentAmount = booking.getTotalPrice() + booking.getExtraPay();
+
+        property.setIncome(property.getIncome() + paymentAmount);
+
+        booking.setStatus(1); 
+        booking.setExtraPay(0); 
+        propertyRepository.save(property);
+        bookingRepository.save(booking);
+    }
+
+    @Override
+    @Transactional
+    public void cancelBooking(String bookingId) {
+        AccommodationBooking booking = bookingRepository.findById(bookingId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Booking not found."
+            ));
+        
+        if (booking.getStatus() != 0 && booking.getStatus() != 1 && booking.getStatus() != 3) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "This booking cannot be cancelled."
+            );
+        }
+
+        Property property = booking.getRoom().getRoomType().getProperty();
+
+        switch (booking.getStatus()) {
+            case 0:
+                if (booking.getExtraPay() > 0) {
+                    property.setIncome(
+                        property.getIncome() + (booking.getTotalPrice() - booking.getExtraPay())
+                    );
+                }
+                break;
+            case 1: 
+                property.setIncome(property.getIncome() - booking.getTotalPrice());
+                break;
+            case 3:
+                property.setIncome(
+                    property.getIncome() - (booking.getTotalPrice() + booking.getRefund())
+                );
+                break;
+        }
+
+        booking.setStatus(2); 
+        propertyRepository.save(property);
+        bookingRepository.save(booking);
+    }
+
+    @Override
+    @Transactional
+    public void processRefund(String bookingId) {
+        AccommodationBooking booking = bookingRepository.findById(bookingId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Booking not found."
+            ));
+
+        if (booking.getStatus() != 3) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Refund can only be processed for bookings with status 'Request Refund'."
+            );
+        }
+
+        Property property = booking.getRoom().getRoomType().getProperty();
+  
+        property.setIncome(property.getIncome() - booking.getRefund());
+
+        booking.setStatus(1); 
+        booking.setRefund(0); 
+
+        propertyRepository.save(property);
+        bookingRepository.save(booking);
     }
 }

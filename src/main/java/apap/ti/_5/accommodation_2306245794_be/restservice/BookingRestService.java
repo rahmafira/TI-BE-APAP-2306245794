@@ -19,4 +19,7 @@ public interface BookingRestService {
     BookingDetailDTO createBooking(CreateBookingRequestDTO dto);
     UpdateBookingFormDTO getBookingDataForUpdate(String id);
     BookingDetailDTO updateBooking(UpdateBookingRequestDTO dto);
+    void confirmPayment(String bookingId);
+    void cancelBooking(String bookingId);
+    void processRefund(String bookingId);
 }

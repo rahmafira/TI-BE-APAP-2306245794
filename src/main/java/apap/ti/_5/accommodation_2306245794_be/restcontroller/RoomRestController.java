@@ -7,10 +7,13 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult; 
+import org.springframework.validation.FieldError; 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Date;
+import java.util.stream.Collectors; 
 
 @RestController
 @RequestMapping("/api/rooms")
@@ -21,12 +24,46 @@ public class RoomRestController {
     private RoomRestService roomRestService;
 
     @PostMapping("/maintenance/add")
-    public ResponseEntity<BaseResponseDTO<Object>> addMaintenanceSchedule(@Valid @RequestBody CreateMaintenanceRequestDTO requestDTO) {
+    public ResponseEntity<BaseResponseDTO<Object>> addMaintenanceSchedule(
+        @Valid @RequestBody CreateMaintenanceRequestDTO requestDTO,
+        BindingResult bindingResult 
+    ) {
+        var baseResponseDTO = new BaseResponseDTO<Object>();
+
+        if (bindingResult.hasErrors()) {
+            String errorMessages = bindingResult.getFieldErrors().stream()
+                    .map(FieldError::getDefaultMessage)
+                    .collect(Collectors.joining("; "));
+            
+            baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponseDTO.setMessage(errorMessages);
+            baseResponseDTO.setData(null);
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
+        }
+
         try {
             roomRestService.createMaintenanceSchedule(requestDTO);
-            return ResponseEntity.ok(new BaseResponseDTO<>(HttpStatus.OK.value(), "Maintenance schedule added successfully.", new Date(), null));
+            
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setMessage("Maintenance schedule added successfully.");
+            baseResponseDTO.setData(null);
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+
         } catch (ResponseStatusException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(new BaseResponseDTO<>(e.getStatusCode().value(), e.getReason(), new Date(), null));
+            baseResponseDTO.setStatus(e.getStatusCode().value());
+            baseResponseDTO.setMessage(e.getReason());
+            baseResponseDTO.setData(null);
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, e.getStatusCode());
+
+        } catch (Exception e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("An error occurred: " + e.getMessage());
+            baseResponseDTO.setData(null);
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

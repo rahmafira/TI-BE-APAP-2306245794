@@ -237,7 +237,7 @@ public class PropertyRestServiceImpl implements PropertyRestService {
         Property property = propertyRepository.findByIdWithRoomTypes(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Property not found"));
 
-        long futureBookings = bookingRepository.countFutureBookingsByPropertyId(id, LocalDateTime.now());
+        long futureBookings = bookingRepository.countByRoomRoomTypePropertyPropertyIdAndCheckInDateGreaterThanEqual(id, LocalDateTime.now());
         if (futureBookings > 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot deactivate property. There are " + futureBookings + " upcoming bookings.");
         }
