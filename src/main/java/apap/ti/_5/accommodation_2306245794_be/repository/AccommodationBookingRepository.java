@@ -20,4 +20,10 @@ public interface AccommodationBookingRepository extends JpaRepository<Accommodat
            "AND b.checkOutDate > :maintenanceStart")
     long countOverlappingBookings(String roomId, LocalDateTime maintenanceStart, LocalDateTime maintenanceEnd);
     List<AccommodationBooking> findAllByOrderByBookingIDDesc();
+    @Query("SELECT COUNT(b) FROM AccommodationBooking b " +
+           "WHERE b.room.roomId = :roomId " +
+           "AND b.bookingID != :bookingIdToExclude " + 
+           "AND b.checkInDate < :maintenanceEnd " +
+           "AND b.checkOutDate > :maintenanceStart")
+    long countOverlappingBookingsForUpdate(String roomId, LocalDateTime maintenanceStart, LocalDateTime maintenanceEnd, String bookingIdToExclude);
 }

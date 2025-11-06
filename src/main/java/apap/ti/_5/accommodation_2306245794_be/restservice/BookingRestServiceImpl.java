@@ -3,6 +3,7 @@ package apap.ti._5.accommodation_2306245794_be.restservice;
 import apap.ti._5.accommodation_2306245794_be.model.*;
 import apap.ti._5.accommodation_2306245794_be.repository.*;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.CreateBookingRequestDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdateBookingRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.*;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ public class BookingRestServiceImpl implements BookingRestService {
     private PropertyRepository propertyRepository;
     
     @Override
-    @Transactional(readOnly = true)
+    @Transactional 
     public List<BookingResponseDTO> getAllBookings() {
         List<AccommodationBooking> allBookings = bookingRepository.findAllByOrderByBookingIDDesc();
         LocalDateTime now = LocalDateTime.now();
@@ -76,10 +77,12 @@ public class BookingRestServiceImpl implements BookingRestService {
             .bookingId(booking.getBookingID())
             .propertyName(booking.getRoom().getRoomType().getProperty().getPropertyName())
             .roomName(booking.getRoom().getName())
+            .roomId(booking.getRoom().getRoomId())
             .customerId(booking.getCustomerID())
             .customerName(booking.getCustomerName())
             .customerEmail(booking.getCustomerEmail())
             .customerPhone(booking.getCustomerPhone())
+            .capacity(booking.getCapacity())
             .checkInDate(booking.getCheckInDate()) 
             .checkOutDate(booking.getCheckOutDate()) 
             .totalDays(booking.getTotalDays())
@@ -136,7 +139,7 @@ public class BookingRestServiceImpl implements BookingRestService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional // DIHAPUS: (readOnly = true)
     public BookingDetailDTO createBooking(CreateBookingRequestDTO dto) {
         Room room = roomRepository.findById(dto.getRoomId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Room not found"));
@@ -175,7 +178,7 @@ public class BookingRestServiceImpl implements BookingRestService {
         }
 
         String roomIdSuffix = room.getRoomId().substring(room.getRoomId().length() - 7);
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm:ss"));
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
         String bookingId = String.format("BOOK-%s-%s", roomIdSuffix, timestamp);
 
         AccommodationBooking booking = new AccommodationBooking();
@@ -198,5 +201,116 @@ public class BookingRestServiceImpl implements BookingRestService {
         AccommodationBooking savedBooking = bookingRepository.save(booking);
  
         return mapBookingToDetailDTO(savedBooking);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UpdateBookingFormDTO getBookingDataForUpdate(String id) {
+        AccommodationBooking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+        
+        if (booking.getExtraPay() > 0 || booking.getRefund() > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking with pending extra payment or refund cannot be updated.");
+        }
+
+        BookingDetailDTO currentBooking = mapBookingToDetailDTO(booking);
+
+        BookingSelectionDTO selectionData = getBookingSelectionData();
+
+        String currentPropertyId = booking.getRoom().getRoomType().getProperty().getPropertyId();
+        boolean isPropertyInList = selectionData.getProperties().stream()
+            .anyMatch(p -> p.getId().equals(currentPropertyId));
+
+        if (!isPropertyInList) {
+            Property currentProperty = booking.getRoom().getRoomType().getProperty();
+
+            Hibernate.initialize(currentProperty.getListRoomType());
+            for (RoomType rt : currentProperty.getListRoomType()) {
+                Hibernate.initialize(rt.getListRoom());
+            }
+
+            BookingSelectionDTO.PropertyOption inactivePropertyOption = 
+                new BookingSelectionDTO.PropertyOption(
+                    currentProperty.getPropertyId(),
+                    currentProperty.getPropertyName(),
+                    currentProperty.getListRoomType().stream()
+                        .map(rt -> new BookingSelectionDTO.RoomTypeOption(
+                            rt.getRoomTypeId(), 
+                            rt.getName(),
+                            rt.getListRoom().stream()
+                                .map(r -> new BookingSelectionDTO.RoomOption(
+                                    r.getRoomId(), 
+                                    r.getName(), 
+                                    rt.getCapacity()
+                                ))
+                                .collect(Collectors.toList())
+                        ))
+                        .collect(Collectors.toList())
+                );
+
+            selectionData.getProperties().add(inactivePropertyOption);
+        }
+
+        return new UpdateBookingFormDTO(currentBooking, selectionData);
+    }
+
+    @Override
+    @Transactional 
+    public BookingDetailDTO updateBooking(UpdateBookingRequestDTO dto) {
+        AccommodationBooking booking = bookingRepository.findById(dto.getBookingId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+        
+        if (booking.getExtraPay() > 0 || booking.getRefund() > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking with pending extra payment or refund cannot be updated.");
+        }
+
+        Room newRoom = roomRepository.findById(dto.getRoomId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Selected room not found"));
+
+        LocalDateTime newCheckIn = dto.getCheckInDate().atTime(14, 0);
+        LocalDateTime newCheckOut = dto.getCheckOutDate().atTime(12, 0);
+
+        if (newCheckOut.isBefore(newCheckIn.plusDays(1))) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Minimum booking is for one day."); }
+        if (newCheckIn.toLocalDate().isBefore(LocalDate.now())) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Minimum check-in date is today."); }
+        if (dto.getCapacity() > newRoom.getRoomType().getCapacity()) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking capacity exceeds room capacity."); }
+
+        long overlappingBookings = bookingRepository.countOverlappingBookingsForUpdate(dto.getRoomId(), newCheckIn, newCheckOut, dto.getBookingId());
+        if (overlappingBookings > 0) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected dates are not available for this room."); }
+        if (newRoom.getMaintenanceStart() != null && newRoom.getMaintenanceEnd() != null) {
+            if (newCheckIn.isBefore(newRoom.getMaintenanceEnd()) && newCheckOut.isAfter(newRoom.getMaintenanceStart())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Room is scheduled for maintenance during the selected dates.");
+            }
+        }
+
+        long newTotalDays = ChronoUnit.DAYS.between(newCheckIn.toLocalDate(), newCheckOut.toLocalDate());
+        if (newTotalDays < 1) newTotalDays = 1;
+        int newTotalPrice = (int) (newRoom.getRoomType().getPrice() * newTotalDays);
+        if (dto.getIsBreakfast()) {
+            newTotalPrice += 50000 * newTotalDays;
+        }
+
+        int oldTotalPrice = booking.getTotalPrice();
+        if (newTotalPrice > oldTotalPrice) {
+            booking.setExtraPay(newTotalPrice - oldTotalPrice);
+            booking.setStatus(0); // Waiting for Payment
+        } else if (newTotalPrice < oldTotalPrice) {
+            booking.setRefund(oldTotalPrice - newTotalPrice);
+            booking.setStatus(3); // Request Refund
+        }
+        
+        booking.setRoom(newRoom);
+        booking.setCheckInDate(newCheckIn);
+        booking.setCheckOutDate(newCheckOut);
+        booking.setTotalDays((int) newTotalDays);
+        booking.setTotalPrice(newTotalPrice);
+        booking.setCustomerID(dto.getCustomerId());
+        booking.setCustomerName(dto.getCustomerName());
+        booking.setCustomerEmail(dto.getCustomerEmail());
+        booking.setCustomerPhone(dto.getCustomerPhone());
+        booking.setBreakfast(dto.getIsBreakfast());
+        booking.setCapacity(dto.getCapacity());
+
+        AccommodationBooking updatedBooking = bookingRepository.save(booking);
+        return mapBookingToDetailDTO(updatedBooking);
     }
 }

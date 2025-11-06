@@ -3,10 +3,12 @@ package apap.ti._5.accommodation_2306245794_be.restcontroller;
 import apap.ti._5.accommodation_2306245794_be.model.AccommodationBooking;
 import apap.ti._5.accommodation_2306245794_be.restdto.BaseResponseDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.CreateBookingRequestDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdateBookingRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.BookingDetailDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.BookingResponseDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.BookingSelectionDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.PrefilledBookingDTO;
+import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.UpdateBookingFormDTO;
 import apap.ti._5.accommodation_2306245794_be.restservice.BookingRestService;
 import jakarta.validation.Valid;
 
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -86,6 +89,27 @@ public class BookingRestController {
         try {
             BookingDetailDTO booking = bookingRestService.createBooking(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(new BaseResponseDTO<>(HttpStatus.CREATED.value(), "Booking created successfully.", new Date(), booking));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(new BaseResponseDTO<>(e.getStatusCode().value(), e.getReason(), new Date(), null));
+        }
+    }
+
+    @GetMapping("/update/{id}")
+    public ResponseEntity<BaseResponseDTO<UpdateBookingFormDTO>> getBookingForUpdate(@PathVariable("id") String id) {
+        try {
+            UpdateBookingFormDTO data = bookingRestService.getBookingDataForUpdate(id);
+            return ResponseEntity.ok(new BaseResponseDTO<>(HttpStatus.OK.value(), "Success", new Date(), data));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(new BaseResponseDTO<>(e.getStatusCode().value(), e.getReason(), new Date(), null));
+        }
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<BaseResponseDTO<BookingDetailDTO>> updateBooking(@Valid @RequestBody UpdateBookingRequestDTO dto) {
+        try {
+            BookingDetailDTO updatedBooking = bookingRestService.updateBooking(dto);
+
+            return ResponseEntity.ok(new BaseResponseDTO<>(HttpStatus.OK.value(), "Booking updated successfully", new Date(), updatedBooking));
         } catch (ResponseStatusException e) {
             return ResponseEntity.status(e.getStatusCode()).body(new BaseResponseDTO<>(e.getStatusCode().value(), e.getReason(), new Date(), null));
         }

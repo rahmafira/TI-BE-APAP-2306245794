@@ -15,6 +15,7 @@ public class BookingDetailDTO {
     private String bookingId;
     private String propertyName;
     private String roomName;
+    private String roomId; 
     private UUID customerId;
     private String customerName;
     private String customerEmail;
@@ -27,6 +28,7 @@ public class BookingDetailDTO {
     private int totalPrice;
     private int extraPay;
     private int refund;
+    private int capacity;
     private LocalDateTime createdDate;
     private LocalDateTime updatedAt;
 }
