@@ -4,20 +4,20 @@ import apap.ti._5.accommodation_2306245794_be.model.Room;
 import apap.ti._5.accommodation_2306245794_be.repository.AccommodationBookingRepository;
 import apap.ti._5.accommodation_2306245794_be.repository.RoomRepository;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.CreateMaintenanceRequestDTO;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@RequiredArgsConstructor
 public class RoomRestServiceImpl implements RoomRestService {
 
-    @Autowired
-    private RoomRepository roomRepository;
+    private final RoomRepository roomRepository;
 
-    @Autowired
-    private AccommodationBookingRepository bookingRepository;
+    private final AccommodationBookingRepository bookingRepository;
 
     @Override
     @Transactional

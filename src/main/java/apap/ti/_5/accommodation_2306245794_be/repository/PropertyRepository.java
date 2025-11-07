@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface PropertyRepository extends JpaRepository<Property, String> {
     List<Property> findAllByOrderByUpdatedDateDesc();
-
+    
     @Query("SELECT p FROM Property p LEFT JOIN FETCH p.listRoomType WHERE p.propertyId = :id")
     Optional<Property> findByIdWithRoomTypes(String id);
 

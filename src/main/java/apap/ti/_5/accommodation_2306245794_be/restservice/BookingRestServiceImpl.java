@@ -6,9 +6,9 @@ import apap.ti._5.accommodation_2306245794_be.restdto.request.CreateBookingReque
 import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdateBookingRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.*;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.chart.ChartDataDTO;
+import lombok.RequiredArgsConstructor;
 
 import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,16 +21,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class BookingRestServiceImpl implements BookingRestService {
     
-    @Autowired 
-    private AccommodationBookingRepository bookingRepository;
+    private final AccommodationBookingRepository bookingRepository;
 
-    @Autowired 
-    private RoomRepository roomRepository;
+    private final RoomRepository roomRepository;
 
-    @Autowired 
-    private PropertyRepository propertyRepository;
+    private final PropertyRepository propertyRepository;
     
     @Override
     @Transactional 
@@ -176,11 +174,17 @@ public class BookingRestServiceImpl implements BookingRestService {
         );
         if (overlappingBookings > 0) { 
             throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST, "Selected dates are not available for this room."
+                HttpStatus.BAD_REQUEST, "Selected dates are not available for this room due to other bookings."
             ); 
         }
+
         if (room.getMaintenanceStart() != null && room.getMaintenanceEnd() != null) {
-            if (checkIn.isBefore(room.getMaintenanceEnd()) && checkOut.isAfter(room.getMaintenanceStart())) {
+            LocalDateTime maintenanceStart = room.getMaintenanceStart();
+            LocalDateTime maintenanceEnd = room.getMaintenanceEnd();
+        
+            boolean isOverlapping = !(checkOut.isBefore(maintenanceStart) || checkOut.isEqual(maintenanceStart) || checkIn.isAfter(maintenanceEnd) || checkIn.isEqual(maintenanceEnd));
+
+            if (isOverlapping) {
                 throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Room is scheduled for maintenance during the selected dates."
                 );
@@ -199,7 +203,7 @@ public class BookingRestServiceImpl implements BookingRestService {
 
         String roomIdSuffix = room.getRoomId().substring(room.getRoomId().length() - 7);
         String timestamp = LocalDateTime.now().format(
-            DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")
+            DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm:ss")
         );
         String bookingId = String.format("BOOK-%s-%s", roomIdSuffix, timestamp);
 
@@ -221,7 +225,7 @@ public class BookingRestServiceImpl implements BookingRestService {
         booking.setRefund(0);
 
         AccommodationBooking savedBooking = bookingRepository.save(booking);
- 
+
         return mapBookingToDetailDTO(savedBooking);
     }
 

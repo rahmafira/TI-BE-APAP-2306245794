@@ -17,6 +17,8 @@ import apap.ti._5.accommodation_2306245794_be.restdto.response.property.Property
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyResponseDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.room.RoomDetailDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.response.roomtype.RoomTypeDetailDTO;
+import lombok.RequiredArgsConstructor;
+
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,19 +35,16 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PropertyRestServiceImpl implements PropertyRestService {
 
-    @Autowired
-    private PropertyRepository propertyRepository;
+    private final PropertyRepository propertyRepository;
 
-    @Autowired
-    private RoomTypeRepository roomTypeRepository;
+    private final RoomTypeRepository roomTypeRepository;
 
-    @Autowired
-    private RoomRepository roomRepository;
-
-    @Autowired
-    private AccommodationBookingRepository bookingRepository;
+    private final RoomRepository roomRepository;
+    
+    private final AccommodationBookingRepository bookingRepository;
 
     private final AtomicLong propertyCounter = new AtomicLong(0);
 

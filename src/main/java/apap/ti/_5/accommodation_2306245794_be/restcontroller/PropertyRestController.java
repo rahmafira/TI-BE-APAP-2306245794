@@ -1,6 +1,5 @@
 package apap.ti._5.accommodation_2306245794_be.restcontroller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -29,6 +28,7 @@ import apap.ti._5.accommodation_2306245794_be.restdto.response.property.Property
 import apap.ti._5.accommodation_2306245794_be.restdto.response.property.PropertyResponseDTO;
 import apap.ti._5.accommodation_2306245794_be.restservice.PropertyRestService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
@@ -37,10 +37,10 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/properties")
 @CrossOrigin(origins = "http://localhost:5173")
+@RequiredArgsConstructor
 public class PropertyRestController {
 
-    @Autowired
-    private PropertyRestService propertyRestService;
+    private final PropertyRestService propertyRestService;
 
     @GetMapping("")
     public ResponseEntity<BaseResponseDTO<List<PropertyResponseDTO>>> getAllProperties() {

@@ -1,6 +1,5 @@
 package apap.ti._5.accommodation_2306245794_be.restcontroller;
 
-import apap.ti._5.accommodation_2306245794_be.model.AccommodationBooking;
 import apap.ti._5.accommodation_2306245794_be.restdto.BaseResponseDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.CreateBookingRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.UpdateBookingRequestDTO;
@@ -13,8 +12,8 @@ import apap.ti._5.accommodation_2306245794_be.restdto.response.booking.UpdateBoo
 import apap.ti._5.accommodation_2306245794_be.restdto.response.chart.ChartDataDTO;
 import apap.ti._5.accommodation_2306245794_be.restservice.BookingRestService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -37,10 +36,10 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/bookings")
 @CrossOrigin(origins = "http://localhost:5173")
+@RequiredArgsConstructor
 public class BookingRestController {
 
-    @Autowired
-    private BookingRestService bookingRestService;
+    private final BookingRestService bookingRestService;
 
     @GetMapping("")
     public ResponseEntity<BaseResponseDTO<List<BookingResponseDTO>>> getAllBookings() {

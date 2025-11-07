@@ -1,20 +1,19 @@
 package apap.ti._5.accommodation_2306245794_be.restservice;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import apap.ti._5.accommodation_2306245794_be.repository.AccommodationBookingRepository;
 import apap.ti._5.accommodation_2306245794_be.repository.PropertyRepository;
 import apap.ti._5.accommodation_2306245794_be.restdto.BerandaResponseDTO;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class BerandaRestServiceImpl implements BerandaRestService {
 
-    @Autowired
-    private PropertyRepository propertyRepository;
+    private final PropertyRepository propertyRepository;
 
-    @Autowired
-    private AccommodationBookingRepository accommodationBookingRepository;
+    private final AccommodationBookingRepository accommodationBookingRepository;
 
     @Override
     public BerandaResponseDTO getBerandaStatistics() {

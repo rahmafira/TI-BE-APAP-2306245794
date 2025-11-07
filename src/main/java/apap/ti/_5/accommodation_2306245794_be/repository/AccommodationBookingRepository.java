@@ -16,11 +16,13 @@ public interface AccommodationBookingRepository extends JpaRepository<Accommodat
         String propertyId, 
         LocalDateTime currentDate
     );
+
     long countByRoomRoomIdAndCheckInDateLessThanAndCheckOutDateGreaterThan(
         String roomId, 
         LocalDateTime maintenanceEnd, 
         LocalDateTime maintenanceStart
     );
+
     List<AccommodationBooking> findAllByOrderByBookingIDDesc();
     long countByRoomRoomIdAndBookingIDNotAndCheckInDateLessThanAndCheckOutDateGreaterThan(
         String roomId, 
@@ -28,11 +30,12 @@ public interface AccommodationBookingRepository extends JpaRepository<Accommodat
         LocalDateTime maintenanceEnd, 
         LocalDateTime maintenanceStart
     );
+    
     @Query("SELECT new apap.ti._5.accommodation_2306245794_be.restdto.response.chart.ChartDataDTO(b.room.roomType.property.propertyName, SUM(b.totalPrice)) " +
            "FROM AccommodationBooking b " +
            "WHERE b.status = 4 " +
-           "AND EXTRACT(YEAR FROM b.checkInDate) = :year " +    // Ganti FUNCTION('YEAR', ...)
-           "AND EXTRACT(MONTH FROM b.checkInDate) = :month " +  // Ganti FUNCTION('MONTH', ...)
+           "AND EXTRACT(YEAR FROM b.checkInDate) = :year " +    
+           "AND EXTRACT(MONTH FROM b.checkInDate) = :month " +  
            "GROUP BY b.room.roomType.property.propertyName " +
            "ORDER BY SUM(b.totalPrice) DESC")
     List<ChartDataDTO> findMonthlyIncomeByProperty(

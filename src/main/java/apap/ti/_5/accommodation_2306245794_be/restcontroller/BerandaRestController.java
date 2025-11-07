@@ -3,23 +3,24 @@ package apap.ti._5.accommodation_2306245794_be.restcontroller;
 import apap.ti._5.accommodation_2306245794_be.restdto.BaseResponseDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.BerandaResponseDTO;
 import apap.ti._5.accommodation_2306245794_be.restservice.BerandaRestService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin; 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.CrossOrigin; 
 
 import java.util.Date;
 
 @RestController
 @RequestMapping("/")
 @CrossOrigin(origins = "http://localhost:5173")
+@RequiredArgsConstructor
 public class BerandaRestController {
 
-    @Autowired
-    private BerandaRestService berandaRestService;
+    private final BerandaRestService berandaRestService;
 
     @GetMapping("/")
     public ResponseEntity<BaseResponseDTO<BerandaResponseDTO>> getBerandaStatistics() {

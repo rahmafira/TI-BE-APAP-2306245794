@@ -4,7 +4,8 @@ import apap.ti._5.accommodation_2306245794_be.restdto.BaseResponseDTO;
 import apap.ti._5.accommodation_2306245794_be.restdto.request.CreateMaintenanceRequestDTO;
 import apap.ti._5.accommodation_2306245794_be.restservice.RoomRestService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult; 
@@ -18,10 +19,10 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/rooms")
 @CrossOrigin(origins = "http://localhost:5173")
+@RequiredArgsConstructor
 public class RoomRestController {
 
-    @Autowired
-    private RoomRestService roomRestService;
+    private final RoomRestService roomRestService;
 
     @PostMapping("/maintenance/add")
     public ResponseEntity<BaseResponseDTO<Object>> addMaintenanceSchedule(
