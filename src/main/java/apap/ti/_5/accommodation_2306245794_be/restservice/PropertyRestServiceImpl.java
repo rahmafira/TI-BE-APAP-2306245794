@@ -43,7 +43,7 @@ public class PropertyRestServiceImpl implements PropertyRestService {
     private final RoomTypeRepository roomTypeRepository;
 
     private final RoomRepository roomRepository;
-    
+
     private final AccommodationBookingRepository bookingRepository;
 
     private final AtomicLong propertyCounter = new AtomicLong(0);
@@ -183,10 +183,10 @@ public class PropertyRestServiceImpl implements PropertyRestService {
 
         savedProperty.setListRoomType(roomTypeList);
         savedProperty.setTotalRoom(totalRooms);
-        return propertyRepository.save(savedProperty);
+        return savedProperty;
     }
 
-    private String getPropertyPrefix(int type) {
+    public String getPropertyPrefix(int type) {
         switch (type) {
             case 1: return "HOT";
             case 2: return "VIL";
