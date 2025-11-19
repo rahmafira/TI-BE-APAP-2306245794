@@ -1,0 +1,15 @@
+services:
+  accommodation-2306245794-db:
+    image: postgres:17.5-alpine
+    ports:
+      - '35002:5432'
+    restart: 'no'
+    environment:
+      - POSTGRES_USER=travelapap
+      - POSTGRES_PASSWORD=2306245794
+      - POSTGRES_DB=accommodation-2306245794
+    volumes:
+      - accommodation-2306245794-db:/var/lib/postgresql/data
+volumes:
+  accommodation-2306245794-db:
+    driver: local

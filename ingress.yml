@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: accommodation-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  tls:
+    - hosts:
+        - 2306245794-be.hafizmuh.site
+      secretName: be1-hafizmuh-site-tls
+  rules:
+    - host: 2306245794-be.hafizmuh.site # <- Ubah sesuai nama domain kalian
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: accommodation-service
+                port:
+                  number: 80
