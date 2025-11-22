@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: accommodation-service
+  name: accommodation-be-service
   namespace: default
 spec:
   selector:
-    app: accommodation
+    app: accommodation-be
   type: ClusterIP
   ports:
     - name: http

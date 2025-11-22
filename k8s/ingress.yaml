@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: accommodation-ingress
+  name: accommodation-be-ingress
   namespace: default
   annotations:
     kubernetes.io/ingress.class: traefik
@@ -18,6 +18,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: accommodation-service
+                name: accommodation-be-service
                 port:
                   number: 80
