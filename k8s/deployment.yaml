@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: springboot-container
-          image: rahmafira/accommodation:REPLACE_ME_TAG
+          image: rahmafira/accommodation-be:REPLACE_ME_TAG
           ports:
             - containerPort: 8080
           env:
