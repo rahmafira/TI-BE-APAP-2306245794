@@ -8,8 +8,8 @@ metadata:
 spec:
   tls:
     - hosts:
-        - 2306245794-be.hafizmuh.site
-      secretName: be1-hafizmuh-site-tls
+        - 2306245794-be.hafizmuh.site # <- Ubah sesuai nama domain kalian
+      secretName: be-hafizmuh-site-tls
   rules:
     - host: 2306245794-be.hafizmuh.site # <- Ubah sesuai nama domain kalian
       http:

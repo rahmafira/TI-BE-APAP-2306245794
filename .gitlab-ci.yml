@@ -13,7 +13,7 @@ build:
   script:
     - chmod +x ./gradlew
     - ./gradlew clean build -x test
-    - cp $(find build/libs -name "*.jar" | head -n 1) app.jar
+    - cp $(ls build/libs/* | grep -v plain | head -n 1) app.jar
   artifacts:
     paths:
       - app.jar
@@ -36,7 +36,7 @@ docker-push:
     - docker build -t $DOCKER_IMAGE_NAME_1:$IMAGE_TAG .
     - docker push $DOCKER_IMAGE_NAME_1:$IMAGE_TAG
   only:
-    - main
+    - feat/praktikum-9
 
 deploy:
   stage: deploy
@@ -53,7 +53,7 @@ deploy:
     - echo "Generating Kubernetes ConfigMap & Secret via printf..."
     - |
       printf "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: accommodation-config\n  namespace: default\ndata:\n  DATABASE_URL_PROD: \"%s\"\n  DATABASE_USERNAME: \"%s\"\n" \
-      "$DATABASE_URL_PROD_1" "$DATABASE_USERNAME" > configmap.yaml
+      "$DATABASE_URL_PROD" "$DATABASE_USERNAME" > configmap.yaml
     - |
       printf "apiVersion: v1\nkind: Secret\nmetadata:\n  name: accommodation-secret\n  namespace: default\ntype: Opaque\nstringData:\n  DATABASE_PASSWORD: \"%s\"\n  JWT_SECRET_KEY: \"%s\"\n" \
       "$DATABASE_PASSWORD" "$JWT_SECRET_KEY" > secret.yaml
@@ -67,4 +67,4 @@ deploy:
         sudo k3s kubectl rollout status deployment/accommodation -n default
       "
   only:
-    - main
+    - feat/praktikum-9
