@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/rooms")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"http://2306245794-fe.hafizmuh.site", "http://localhost:5173"})
 @RequiredArgsConstructor
 public class RoomRestController {
 
