@@ -16,7 +16,8 @@ import java.util.Date;
 
 @RestController
 @RequestMapping("/")
-@CrossOrigin(origins ={"http://2306245794-fe.hafizmuh.site", "http://localhost:5173"})
+// @CrossOrigin(origins ={"http://2306245794-fe.hafizmuh.site", "http://localhost:5173"})
+@CrossOrigin(origins ="${CORS_ALLOWED_ORIGINS}")
 @RequiredArgsConstructor
 public class BerandaRestController {
 
