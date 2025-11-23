@@ -39,3 +39,8 @@ spec:
                 secretKeyRef:
                   name: accommodation-be-secret
                   key: JWT_SECRET_KEY
+            - name: CORS_ALLOWED_ORIGINS
+              valueFrom:
+                secretKeyRef:
+                  name: accommodation-be-secret
+                  key: CORS_ALLOWED_ORIGINS
