@@ -1,4 +1,4 @@
-stages:
+stages: 
   - build
   - docker-push
   - deploy
@@ -69,3 +69,5 @@ deploy:
       "
   only:
     - feat/praktikum-9
+
+# ini kalau pake gitlab
